@@ -1,0 +1,17 @@
+# WiFi credentials and passwords - never commit
+secrets.h
+
+# Android / Gradle
+android/.gradle/
+android/build/
+android/app/build/
+android/local.properties
+android/captures/
+android/.externalNativeBuild/
+android/.cxx/
+*.iml
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db

@@ -1,0 +1,6 @@
+<resources>
+    <string name="app_name">Cat Laser PRO 2</string>
+    <string name="widget_laser_label">Cat Laser PRO 2</string>
+    <string name="notif_channel_name">Cat Laser PRO 2 quick access</string>
+    <string name="notif_title">Cat Laser PRO 2 active</string>
+</resources>
