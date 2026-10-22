@@ -10,22 +10,39 @@ on:
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    # Pinned: the preinstalled Android SDK of this image is used, no extra SDK setup action needed.
+    runs-on: ubuntu-24.04
     defaults:
       run:
         working-directory: android
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
-      - uses: actions/setup-java@v4
+      - uses: actions/setup-java@v5
         with:
           distribution: temurin
           java-version: 17
 
-      - uses: android-actions/setup-android@v3
+      - name: Accept Android SDK licenses
+        working-directory: .
+        run: |
+          SDK="${ANDROID_HOME:-${ANDROID_SDK_ROOT:-/usr/local/lib/android/sdk}}"
+          echo "Android SDK: $SDK"
+          sudo mkdir -p "$SDK/licenses"
+          printf '\n24333f8a63b6825ea9c5514f83c2829b004d1fee\n' | sudo tee "$SDK/licenses/android-sdk-license" > /dev/null
+          printf '\nd56f5187479451eabf01fb78af6dfcb131a6481e\n' | sudo tee -a "$SDK/licenses/android-sdk-license" > /dev/null
+          echo "sdk.dir=$SDK" > android/local.properties
 
       - name: Build debug APK (auto-signed, directly installable)
-        run: ./gradlew assembleDebug --no-daemon
+        run: chmod +x gradlew && ./gradlew assembleDebug --no-daemon --stacktrace 2>&1 | tee build.log; test "${PIPESTATUS[0]}" -eq 0
+
+      - name: Summarize build errors
+        if: failure()
+        run: |
+          if [ -f build.log ]; then
+            MSG=$(grep -nE "^e: |error:|What went wrong|Execution failed|Could not |license|FAILED" -A2 build.log | head -60 | sed ':a;N;$!ba;s/\n/%0A/g')
+            echo "::error title=Gradle build failed::${MSG}"
+          fi
 
       - uses: actions/upload-artifact@v4
         with:
